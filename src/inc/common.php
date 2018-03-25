@@ -23,9 +23,9 @@ class Common // phpcs:ignore
      * @param string $key  must be checked
      * @param string $size size of key
      * 
-     * @return string|bool
+     * @return string
      */
-    protected function sanitizeHexadecimalKey( string $key, int $size ) : mixed
+    protected function sanitizeHexadecimalKey( string $key, int $size ) : string
     {
         $isHexadecimal = ctype_xdigit($key);
         $keySize       = strlen($key);
@@ -40,19 +40,58 @@ class Common // phpcs:ignore
                 "The key '$key' must contain $size characters and be hexadecimal."
             );
 
-            return false;
+            return '';
         }
     }
 
     /**
-     * Remote get.
+     * Sanitize
      * 
-     * @return array
+     * @param string $numbers 
+     * @param string $size 
+     * 
+     * @return string
      */
-    protected function remoteGet() : array
+    protected function sanitizeNumbers( string $numbers, int $size ) : string
     {
-        
+        $isNumerical = ctype_digit($numbers);
+        $stringSize  = strlen($numbers);
 
+        if ($isNumerical && $stringSize === $size) {
+
+            return $numbers;
+
+        } else {
+
+            $this->pushError(
+                "The string '$numbers' must contain $size characters and be numerical." //
+            );
+
+            return '';
+        }
+    }
+
+    /**
+     * Sanitize Url
+     * 
+     * @param string $url 
+     * 
+     * @return string
+     */
+    protected function sanitizeUrl( string $url ) : string
+    {
+        $url = filter_var($url, FILTER_VALIDATE_URL);
+
+        if ($url !== false) {
+
+            return $url;
+
+        } else {
+
+            $this->pushError('Not a valid url.');
+
+            return '';
+        }
     }
 
     /**
@@ -74,7 +113,7 @@ class Common // phpcs:ignore
 
         $args['oauth_signature'] = $this->_getOAuthSignature(
             $secret,
-            $this->_getBaseString($method, $url, $query),
+            $this->_getBaseString($method, $url, $args),
             $tokenSecret
         );
 
@@ -174,6 +213,51 @@ class Common // phpcs:ignore
     }
 
     /**
+     * Remote get.
+     * 
+     * @param string $url 
+     * 
+     * @return array
+     */
+    protected function remoteGet( string $url ) : array
+    {
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        $response = array();
+
+        if (false !== $result = curl_exec($ch) ) {
+
+            $response['body'] = $result;
+
+        } else {
+
+            $this->pushError('Remote get FAIL.');
+
+            $response = $this->getErrors();
+        }
+
+        curl_close($ch);
+
+        return $response;
+    }
+
+    /**
+     * Build GET url
+     * 
+     * @param string $url  
+     * @param array  $args 
+     * 
+     * @return string
+     */
+    protected function buildUrl( string $url, array $args ) : string
+    {
+        $queryString = http_build_query($args);
+        
+        return "$url?$queryString";
+    }
+
+    /**
      * Push error.
      * 
      * @param string $message Error message
@@ -198,7 +282,7 @@ class Common // phpcs:ignore
      * 
      * @return array of errors
      */
-    protected function getErrors() : array
+    public function getErrors() : array
     {
         return array('errors' => $this->_errors);
     }

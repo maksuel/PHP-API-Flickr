@@ -17,47 +17,69 @@ class RequestToken extends Common // phpcs:ignore
 {
     const URL = 'https://www.flickr.com/services/oauth/request_token';
 
-    private $_key    = '';
-    private $_secret = '';
+    private $_key         = '';
+    private $_secret      = '';
+    private $_callbackUrl = '';
 
     /**
      * Construct method.
      * 
-     * @param string $key    Flickr APP Key
-     * @param string $secret Flickr APP Secret
+     * @param string $key 
+     * @param string $secret 
+     * @param string $callbackUrl 
      */
-    public function __construct( string $key, string $secret )
+    public function __construct( string $key, string $secret, string $callbackUrl )
     {
-        $this->setKeys($key, $secret);
+        $this->setKey($key);
+        $this->setSecret($secret);
+        $this->setCallbackUrl($callbackUrl);
+    }
+
+    
+
+
+
+    // SETTERs
+
+    /**
+     * Set Request Token key.
+     * 
+     * @param string $key 
+     * 
+     * @return void
+     */
+    public function setKey( string $key )
+    {
+        $this->_key = $this->sanitizeHexadecimalKey($key, 32);
     }
 
     /**
-     * Set Request Token key and Rquest Token secret.
+     * Set Request Token secret.
      * 
-     * @param string $key    Flickr APP Key
-     * @param string $secret Flickr APP Secret
+     * @param string $secret 
      * 
-     * @return bool
+     * @return void
      */
-    public function setKeys( string $key, string $secret ) : bool
+    public function setSecret( string $secret )
     {
-        $key    = $this->sanitizeHexadecimalKey($key, 32);
-        $secret = $this->sanitizeHexadecimalKey($secret, 16);
-
-        if ($key && $secret) {
-
-            $this->$_key    = $key;
-            $this->$_secret = $secret;
-
-            return true;
-
-        } else {
-
-            $this->pushError('Request Token $key and $secret not setted.');
-
-            return false;
-        }
+        $this->_secret = $this->sanitizeHexadecimalKey($secret, 16);
     }
+
+    /**
+     * Set Request Token callback url.
+     * 
+     * @param string $callbackUrl 
+     * 
+     * @return void
+     */
+    public function setCallbackUrl( string $callbackUrl )
+    {
+        $this->_callbackUrl = $this->sanitizeUrl($callbackUrl);
+    }
+
+
+
+    // GETTERs
 
     /**
      * Get Request Token key.
@@ -80,31 +102,44 @@ class RequestToken extends Common // phpcs:ignore
     }
 
     /**
-     * Get Request Token array.
+     * Get Request Token callback url.
      * 
-     * @param string $callbackUrl must be a valid url
+     * @return string
+     */
+    public function getCallbackUrl() : string
+    {
+        return $this->_callbackUrl;
+    }
+
+    /**
+     * Get Authorization response.
      * 
      * @return array
      */
-    public function getAuthorization( string $callbackUrl ) : array
+    public function getAuthorization() : array
     {
-        $callbackUrl = filter_var($callbackUrl, FILTER_VALIDATE_URL);
-
-        if ($callbackUrl) {
-
-            $args = $this->getRequestArgs(
+        $url = $this->buildUrl(
+            self::URL,
+            $this->getRequestArgs(
                 'GET',
                 self::URL,
-                [ 'oauth_callback' => $callbackUrl ],
+                array(
+                    'oauth_callback' => $this->getCallbackUrl()
+                ),
                 $this->getKey(),
                 $this->getSecret()
-            );
+            )
+        );
 
-            return $this->remoteGet(self::URL, $args);
+        $response = $this->remoteGet($url);
+
+        if (isset($response['body']) ) {
+
+            parse_str($response['body'], $body);
+
+            return $body;
 
         } else {
-
-            $this->pushError('Not a valid callback url.');
 
             return $this->getErrors();
         }
