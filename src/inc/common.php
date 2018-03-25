@@ -23,7 +23,7 @@ class Common
      * @param string $key  must be checked
      * @param string $size size of key
      * 
-     * @return mixed or throw new Exception()
+     * @return string|bool
      */
     protected function checkHexadecimalKey( string $key, int $size ) : mixed
     {
@@ -50,7 +50,7 @@ class Common
      * @param string $message Error message
      * @param string $code    Error code
      * 
-     * @return NO
+     * @return void
      */
     protected function pushError( string $message, int $code = 0 )
     {

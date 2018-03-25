@@ -1,11 +1,7 @@
 <?php
 
 /**
- * Creation Date: 27/02/2018
- * Description:   
- * 
- * Version:       1.0.0
- * Last Modified: 27/02/2018
+ * Flickr class.
  * 
  * PHP version 7
  * 
@@ -17,31 +13,16 @@
  */
 namespace MAKS\API;
 
-if (! class_exists(__NAMESPACE__ . '\Flickr') ) {
+require_once 'inc/common.php';
+require_once 'inc/request-token.php';
 
-    include_once 'inc/common.php';
-    include_once 'inc/request-token.php';
-    include_once 'inc/rest.php';
-    include_once 'inc/upload.php';
-
-    class Flickr
+class Flickr
+{
+    /**
+     * Construct method.
+     */
+    public function __construct()
     {
-        private $_key;
-        private $_secret;
-        private $_access_token;
-        private $_access_token_secret;
-
-        /**
-         * Construct function
-         * 
-         * @param string $consumer_key_or_key description
-         * @param string $secret              description
-         * @param string $access_token        description
-         * @param string $access_token_secret description
-         */
-        public function __construct( string $consumer_key_or_key, string $secret, string $access_token = '', string $access_token_secret = '' )
-        {
-            
-        }
+        
     }
 }
