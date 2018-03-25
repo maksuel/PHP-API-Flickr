@@ -13,7 +13,7 @@
  */
 namespace MAKS\API\Flickr;
 
-class RequestToken extends Common
+class RequestToken extends Common // phpcs:ignore
 {
     const URL = 'https://www.flickr.com/services/oauth/request_token';
 

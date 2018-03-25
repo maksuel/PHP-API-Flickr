@@ -16,7 +16,7 @@ namespace MAKS\API;
 require_once 'inc/common.php';
 require_once 'inc/request-token.php';
 
-class Flickr
+class Flickr // phpcs:ignore
 {
     /**
      * Construct method.

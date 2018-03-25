@@ -13,7 +13,7 @@
  */
 namespace MAKS\API\Flickr;
 
-class Common
+class Common // phpcs:ignore
 {
     private $_errors = array();
 
