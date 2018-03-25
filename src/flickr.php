@@ -16,6 +16,7 @@ namespace MAKS\API;
 require_once 'inc/common.php';
 require_once 'inc/request-token.php';
 require_once 'inc/authorization.php';
+require_once 'inc/access-token.php';
 
 class Flickr // phpcs:ignore
 {
