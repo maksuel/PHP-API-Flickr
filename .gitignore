@@ -2,3 +2,5 @@
 /vendor
 composer.lock
 debug.php
+tests.php
+rest.php

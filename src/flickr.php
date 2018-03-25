@@ -17,11 +17,14 @@ require_once 'inc/common.php';
 require_once 'inc/request-token.php';
 require_once 'inc/authorization.php';
 require_once 'inc/access-token.php';
+// require_once 'inc/rest.php';
 
 class Flickr // phpcs:ignore
 {
     private $_RequestTokenInstance;
     private $_AuthorizationInstance;
+    private $_AccessTokenInstance;
+    private $_RestInstance;
 
     /**
      * Construct method.
