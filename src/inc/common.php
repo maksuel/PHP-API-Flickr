@@ -25,7 +25,7 @@ class Common // phpcs:ignore
      * 
      * @return string|bool
      */
-    protected function checkHexadecimalKey( string $key, int $size ) : mixed
+    protected function sanitizeHexadecimalKey( string $key, int $size ) : mixed
     {
         $isHexadecimal = ctype_xdigit($key);
         $keySize       = strlen($key);
@@ -42,6 +42,135 @@ class Common // phpcs:ignore
 
             return false;
         }
+    }
+
+    /**
+     * Remote get.
+     * 
+     * @return array
+     */
+    protected function remoteGet() : array
+    {
+        
+
+    }
+
+    /**
+     * Get query
+     * 
+     * @param string $method      GET or POST
+     * @param string $url         
+     * @param array  $args        array to concatenate
+     * @param string $key         
+     * @param string $secret      
+     * @param string $token       
+     * @param string $tokenSecret 
+     * 
+     * @return array
+     */
+    protected function getRequestArgs( string $method, string $url, array $args, string $key, string $secret, string $token = '', string $tokenSecret = '' ) : array //
+    {
+        $args = $this->_getRequiredArgs($key, $token, $args);
+
+        $args['oauth_signature'] = $this->_getOAuthSignature(
+            $secret,
+            $this->_getBaseString($method, $url, $query),
+            $tokenSecret
+        );
+
+        ksort($args);
+
+        return $args;
+    }
+
+    /**
+     * Private method get required args and merge if necessary.
+     * 
+     * @param string $key   
+     * @param string $token 
+     * @param array  $args  
+     * 
+     * @return array
+     */
+    private function _getRequiredArgs( string $key, string $token = '', array $args = [] ) : array //
+    {
+        $required = array(
+            'oauth_consumer_key'     => $key,
+            'oauth_nonce'            => substr(
+                hash_hmac('md5', random_bytes(32), $key), -12, 10 // WP reference
+            ),
+            'oauth_signature_method' => 'HMAC-SHA1',
+            'oauth_timestamp'        => time(),
+            'oauth_version'          => '1.0'
+        );
+
+        if (! empty($token) ) {
+            $required['oauth_token'] = $token;
+        }
+
+        return array_merge($args, $required);
+    }
+
+    /**
+     * Get OAuth Signature
+     * 
+     * @param string $secret      
+     * @param string $data        
+     * @param strign $tokenSecret 
+     * 
+     * @return string
+     */
+    private function _getOAuthSignature( string $secret, string $data, string $tokenSecret ) : string //
+    {
+        $key = "{$secret}&{$tokenSecret}";
+
+        return base64_encode(
+            hash_hmac('sha1', $data, $key, true)
+        );
+    }
+
+    /**
+     * Get base string.
+     * 
+     * @param string $method GET or POST
+     * @param string $url    
+     * @param array  $args   
+     * 
+     * @return string
+     */
+    private function _getBaseString( string $method, string $url, array $args ) : string //
+    {
+        $supported_methods = [ 'GET', 'POST' ];
+        $excluded_keys     = [ 'photo' ];
+
+        $method = strtoupper($method);
+
+        if (! in_array($method, $supported_methods) ) {
+
+            $this->pushError("Method '$method' not supported.");
+
+            return '';
+        }
+
+        ksort($args);
+
+        $queryString = '';
+
+        foreach ( $args as $key => $value ) {
+
+            if (in_array($key, $excluded_keys) ) {
+                continue;
+            }
+
+            $value = rawurlencode($value);
+
+            $queryString .= empty($queryString) ? "{$key}={$value}" : "&{$key}={$value}"; //
+        }
+        
+        $url    = rawurlencode($url);
+        $queryString = rawurlencode($queryString);
+
+        return "{$method}&{$url}&{$queryString}";
     }
 
     /**
@@ -71,83 +200,6 @@ class Common // phpcs:ignore
      */
     protected function getErrors() : array
     {
-        return $this->_errors;
-    }
-
-
-
-
-
-
-
-    protected function common_get_query( string $method, string $url, array $args, string $key, string $secret, string $token = '', string $token_secret = '' )
-    {
-        $query = $this->get_query($key, $token, $args);
-
-        $query['oauth_signature'] = $this->get_oauth_signature(
-            $secret,
-            $this->get_base_string($method, $url, $query),
-            $token_secret
-        );
-
-        ksort($query);
-
-        return $query;
-    }
-
-    private function get_query( string $key, string $token, array $args = [] ) : array
-    {
-        $required = array(
-            'oauth_consumer_key'     => $key,
-            'oauth_nonce'            => wp_create_nonce(),
-            'oauth_signature_method' => 'HMAC-SHA1',
-            'oauth_timestamp'        => time(),
-            'oauth_version'          => '1.0'
-        );
-
-        if(! empty($token) ) {
-            $required['oauth_token'] = $token;
-        }
-
-        return array_merge($args, $required);
-    }
-
-    private function get_oauth_signature( string $secret, string $data, string $token_secret ) : string
-    {
-        $key = "{$secret}&{$token_secret}";
-
-        return base64_encode(
-            hash_hmac('sha1', $data, $key, true)
-        );
-    }
-
-    private function get_base_string( string $method, string $url, array $query ) : string
-    {
-        $supported_methods = [ 'GET', 'POST' ];
-        $excluded_keys     = [ 'photo' ];
-
-        $method = strtoupper($method);
-
-        if(! in_array($method, $supported_methods) ) { return '';
-        }
-
-        ksort($query);
-
-        $params = '';
-
-        foreach( $query as $key => $value )
-        {
-            if(in_array($key, $excluded_keys) ) { continue;
-            }
-
-            $value = rawurlencode($value);
-
-            $params .= empty($params) ? "{$key}={$value}" : "&{$key}={$value}";
-        }
-        
-        $url    = rawurlencode($url);
-        $params = rawurlencode($params);
-
-        return "{$method}&{$url}&{$params}";
+        return array('errors' => $this->_errors);
     }
 }

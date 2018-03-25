@@ -17,8 +17,8 @@ class RequestToken extends Common // phpcs:ignore
 {
     const URL = 'https://www.flickr.com/services/oauth/request_token';
 
-    private $_key;
-    private $_secret;
+    private $_key    = '';
+    private $_secret = '';
 
     /**
      * Construct method.
@@ -41,8 +41,8 @@ class RequestToken extends Common // phpcs:ignore
      */
     public function setKeys( string $key, string $secret ) : bool
     {
-        $key    = $this->checkHexadecimalKey($key, 32);
-        $secret = $this->checkHexadecimalKey($secret, 16);
+        $key    = $this->sanitizeHexadecimalKey($key, 32);
+        $secret = $this->sanitizeHexadecimalKey($secret, 16);
 
         if ($key && $secret) {
 
@@ -80,16 +80,33 @@ class RequestToken extends Common // phpcs:ignore
     }
 
     /**
-     * Get Request Token array
+     * Get Request Token array.
      * 
      * @param string $callbackUrl must be a valid url
      * 
      * @return array
      */
-    public function getRequestToken( string $callbackUrl ) : array
+    public function getAuthorization( string $callbackUrl ) : array
     {
-        // check callbackUrl
-        //
+        $callbackUrl = filter_var($callbackUrl, FILTER_VALIDATE_URL);
 
+        if ($callbackUrl) {
+
+            $args = $this->getRequestArgs(
+                'GET',
+                self::URL,
+                [ 'oauth_callback' => $callbackUrl ],
+                $this->getKey(),
+                $this->getSecret()
+            );
+
+            return $this->remoteGet(self::URL, $args);
+
+        } else {
+
+            $this->pushError('Not a valid callback url.');
+
+            return $this->getErrors();
+        }
     }
 }
