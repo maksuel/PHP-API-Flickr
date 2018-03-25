@@ -50,7 +50,7 @@ class RequestToken extends Common // phpcs:ignore
      */
     public function setKey( string $key )
     {
-        $this->_key = $this->sanitizeHexadecimalKey($key, 32);
+        $this->_key = $this->filterHexadecimalString($key, 32);
     }
 
     /**
@@ -62,7 +62,7 @@ class RequestToken extends Common // phpcs:ignore
      */
     public function setSecret( string $secret )
     {
-        $this->_secret = $this->sanitizeHexadecimalKey($secret, 16);
+        $this->_secret = $this->filterHexadecimalString($secret, 16);
     }
 
     /**
@@ -74,7 +74,7 @@ class RequestToken extends Common // phpcs:ignore
      */
     public function setCallbackUrl( string $callbackUrl )
     {
-        $this->_callbackUrl = $this->sanitizeUrl($callbackUrl);
+        $this->_callbackUrl = $this->filterValidUrl($callbackUrl);
     }
 
 

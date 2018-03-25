@@ -1,7 +1,10 @@
 <?php
 
 /**
- * Request Token class.
+ * Authorization class.
+ * 
+ * Deal with Authorization Token and Privileges.
+ * Can build an URL to anchor Flickr's page to authorize application.
  * 
  * PHP version 7
  * 
@@ -50,19 +53,19 @@ class Authorization extends Common // phpcs:ignore
         if (sizeof($token) !== 2) {
 
             $this->pushError(
-                "Invalid Authorization Token."
+                "Invalid Authorization Token format."
             );
 
             return;
         }
 
-        $token[0] = $this->sanitizeNumbers($token[0], 17);
-        $token[1] = $this->sanitizeHexadecimalKey($token[1], 16);
+        $token[0] = $this->filterNumbersString($token[0], 17);
+        $token[1] = $this->filterHexadecimalString($token[1], 16);
 
         if (empty($token[0]) || empty($token[1]) ) {
 
             $this->pushError(
-                "Wrong format of Authorization Token."
+                "Error on sanitize Authorization Token."
             );
 
         } else {

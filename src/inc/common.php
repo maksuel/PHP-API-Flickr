@@ -18,53 +18,26 @@ class Common // phpcs:ignore
     private $_errors = array();
 
     /**
-     * Check length and if is hexadecimal of string.
+     * Check length and if is hexadecimal and filter a valid value.
      * 
-     * @param string $key  must be checked
-     * @param string $size size of key
-     * 
-     * @return string
-     */
-    protected function sanitizeHexadecimalKey( string $key, int $size ) : string
-    {
-        $isHexadecimal = ctype_xdigit($key);
-        $keySize       = strlen($key);
-
-        if ($isHexadecimal && $keySize === $size) {
-
-            return $key;
-
-        } else {
-
-            $this->pushError(
-                "The key '$key' must contain $size characters and be hexadecimal."
-            );
-
-            return '';
-        }
-    }
-
-    /**
-     * Sanitize
-     * 
-     * @param string $numbers 
+     * @param string $string 
      * @param string $size 
      * 
      * @return string
      */
-    protected function sanitizeNumbers( string $numbers, int $size ) : string
+    protected function filterHexadecimalString( string $string, int $size ) : string
     {
-        $isNumerical = ctype_digit($numbers);
-        $stringSize  = strlen($numbers);
+        $isHexadecimal = ctype_xdigit($string);
+        $stringSize    = strlen($string);
 
-        if ($isNumerical && $stringSize === $size) {
+        if ($isHexadecimal && $stringSize === $size) {
 
-            return $numbers;
+            return $string;
 
         } else {
 
             $this->pushError(
-                "The string '$numbers' must contain $size characters and be numerical." //
+                "The string '$string' must contain $size characters and be hexadecimal." //
             );
 
             return '';
@@ -72,13 +45,40 @@ class Common // phpcs:ignore
     }
 
     /**
-     * Sanitize Url
+     * Check length and if is numerical and filter a valid value.
+     * 
+     * @param string $string 
+     * @param string $size 
+     * 
+     * @return string
+     */
+    protected function filterNumbersString( string $string, int $size ) : string
+    {
+        $isNumerical = ctype_digit($string);
+        $stringSize  = strlen($string);
+
+        if ($isNumerical && $stringSize === $size) {
+
+            return $string;
+
+        } else {
+
+            $this->pushError(
+                "The string '$string' must contain $size characters and be numerical." //
+            );
+
+            return '';
+        }
+    }
+
+    /**
+     * Filter a valid url.
      * 
      * @param string $url 
      * 
      * @return string
      */
-    protected function sanitizeUrl( string $url ) : string
+    protected function filterValidUrl( string $url ) : string
     {
         $url = filter_var($url, FILTER_VALIDATE_URL);
 
@@ -88,11 +88,15 @@ class Common // phpcs:ignore
 
         } else {
 
-            $this->pushError('Not a valid url.');
+            $this->pushError(
+                "The string '$url' is not a valid url."
+            );
 
             return '';
         }
     }
+
+    
 
     /**
      * Get query
