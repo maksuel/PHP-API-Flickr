@@ -3,6 +3,8 @@
 /**
  * Request Token class.
  * 
+ * Can get a valid token to authorize an application.
+ * 
  * PHP version 7
  * 
  * @category API
@@ -35,7 +37,39 @@ class RequestToken extends Common // phpcs:ignore
         $this->setCallbackUrl($callbackUrl);
     }
 
-    
+    /**
+     * Get Authorization response.
+     * 
+     * @return array
+     */
+    public function getAuthorization() : array
+    {
+        $url = $this->buildUrl(
+            self::URL,
+            $this->getRequestArgs(
+                'GET',
+                self::URL,
+                array(
+                    'oauth_callback' => $this->getCallbackUrl()
+                ),
+                $this->getKey(),
+                $this->getSecret()
+            )
+        );
+
+        $response = $this->remoteGet($url);
+
+        if (isset($response['body']) ) {
+
+            parse_str($response['body'], $body);
+
+            return $body;
+
+        } else {
+
+            return $this->getErrors();
+        }
+    }    
 
 
 
@@ -109,39 +143,5 @@ class RequestToken extends Common // phpcs:ignore
     public function getCallbackUrl() : string
     {
         return $this->_callbackUrl;
-    }
-
-    /**
-     * Get Authorization response.
-     * 
-     * @return array
-     */
-    public function getAuthorization() : array
-    {
-        $url = $this->buildUrl(
-            self::URL,
-            $this->getRequestArgs(
-                'GET',
-                self::URL,
-                array(
-                    'oauth_callback' => $this->getCallbackUrl()
-                ),
-                $this->getKey(),
-                $this->getSecret()
-            )
-        );
-
-        $response = $this->remoteGet($url);
-
-        if (isset($response['body']) ) {
-
-            parse_str($response['body'], $body);
-
-            return $body;
-
-        } else {
-
-            return $this->getErrors();
-        }
     }
 }
